@@ -1,0 +1,32 @@
+<NFe>
+  <Numero>000123</Numero>
+  <Itens>
+    <Item>
+      <CodigoBarras>7891000100103</CodigoBarras>
+      <Nome>Dipirona 500mg</Nome>
+      <PrincipioAtivo>Dipirona Monoidratada</PrincipioAtivo>
+      <TipoProduto>Comum</TipoProduto>
+      <Lote>L2026A</Lote>
+      <Validade>2027-01-15T00:00:00</Validade>
+      <Quantidade>100</Quantidade>
+    </Item>
+    <Item>
+      <CodigoBarras>7891000200204</CodigoBarras>
+      <Nome>Rivotril 2mg</Nome>
+      <PrincipioAtivo>Clonazepam</PrincipioAtivo>
+      <TipoProduto>Controlado</TipoProduto>
+      <Lote>L2026B</Lote>
+      <Validade>2026-07-01T00:00:00</Validade>
+      <Quantidade>30</Quantidade>
+    </Item>
+    <Item>
+      <CodigoBarras>7891000300305</CodigoBarras>
+      <Nome>Escova de Dentes</Nome>
+      <PrincipioAtivo></PrincipioAtivo>
+      <TipoProduto>Conveniencia</TipoProduto>
+      <Lote>L2026C</Lote>
+      <Validade>2030-01-01T00:00:00</Validade>
+      <Quantidade>50</Quantidade>
+    </Item>
+  </Itens>
+</NFe>
