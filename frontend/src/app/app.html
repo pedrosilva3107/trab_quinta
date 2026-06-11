@@ -1,0 +1,135 @@
+<h1>Sistema de Farmácia (SNGPC / MIP)
+  <a class="swagger-link" href="/swagger" target="_blank">Abrir Swagger (API)</a>
+</h1>
+
+<section>
+  <h2>1. Entrada de Mercadoria - Importar XML da NF-e (RF01-RF04)</h2>
+  <form (ngSubmit)="importarXml()">
+    <label>Arquivo XML
+      <input type="file" accept=".xml" (change)="onArquivoSelecionado($event)" required>
+    </label>
+    <label>Farmacêutico (obrigatório se houver itens Controlados)
+      <input type="text" [(ngModel)]="entFarm" name="entFarm" placeholder="ana">
+    </label>
+    <label>Senha do farmacêutico
+      <input type="password" [(ngModel)]="entSenha" name="entSenha" placeholder="1234">
+    </label>
+    <label>Nome do paciente (para itens controlados)
+      <input type="text" [(ngModel)]="entPaciente" name="entPaciente">
+    </label>
+    <label>Número da receita
+      <input type="text" [(ngModel)]="entReceita" name="entReceita">
+    </label>
+    <button type="submit">Importar XML</button>
+  </form>
+  <div class="msg" *ngIf="msgEntrada" [class.ok]="msgEntradaOk" [class.erro]="!msgEntradaOk">{{ msgEntrada }}</div>
+</section>
+
+<section>
+  <h2>2. Estoque (RF04)</h2>
+  <button (click)="carregarEstoque()">Atualizar estoque</button>
+  <table>
+    <thead>
+      <tr>
+        <th>Lote ID</th><th>Produto</th><th>Tipo</th><th>Tipo de Receita</th>
+        <th>Lote</th><th>Validade</th><th>Quantidade</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let l of estoque">
+        <td>{{ l.loteEstoqueId }}</td>
+        <td>{{ l.produto }}</td>
+        <td>{{ l.tipoProduto }}</td>
+        <td>{{ l.tipoReceita }}</td>
+        <td>{{ l.numeroLote }}</td>
+        <td>{{ l.dataValidade | date:'dd/MM/yyyy' }}</td>
+        <td>{{ l.quantidade }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3. Alertas de Vencimento - 30 dias (RF05)</h2>
+  <button (click)="carregarVencimentos()">Verificar vencimentos próximos</button>
+  <table>
+    <thead>
+      <tr><th>Produto</th><th>Tipo</th><th>Lote</th><th>Validade</th><th>Quantidade</th></tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="vencimentos.length === 0">
+        <td colspan="5">Nenhum lote vencendo nos próximos 30 dias.</td>
+      </tr>
+      <tr *ngFor="let l of vencimentos">
+        <td>{{ l.produto }}</td>
+        <td>{{ l.tipoProduto }}</td>
+        <td>{{ l.numeroLote }}</td>
+        <td>{{ l.dataValidade | date:'dd/MM/yyyy' }}</td>
+        <td>{{ l.quantidade }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>4. PDV - Confirmar Venda (RF03, RF07)</h2>
+
+  <div class="item-venda" *ngFor="let item of itensVenda; let i = index">
+    <select [(ngModel)]="item.loteEstoqueId" name="lote{{i}}">
+      <option [ngValue]="null">-- selecione um lote --</option>
+      <option *ngFor="let l of estoque" [ngValue]="l.loteEstoqueId">
+        {{ l.produto }} - lote {{ l.numeroLote }} ({{ l.tipoProduto }}, saldo {{ l.quantidade }})
+      </option>
+    </select>
+    <input type="number" min="1" [(ngModel)]="item.quantidade" name="qtd{{i}}" style="width:80px">
+    <button type="button" (click)="removerItemVenda(i)">remover</button>
+  </div>
+
+  <button (click)="adicionarItemVenda()">+ Adicionar item</button>
+
+  <label>Farmacêutico (obrigatório se houver item Controlado)
+    <input type="text" [(ngModel)]="vdFarm" name="vdFarm" placeholder="ana">
+  </label>
+  <label>Senha do farmacêutico
+    <input type="password" [(ngModel)]="vdSenha" name="vdSenha" placeholder="1234">
+  </label>
+  <label>Nome do paciente
+    <input type="text" [(ngModel)]="vdPaciente" name="vdPaciente">
+  </label>
+  <label>Número da receita
+    <input type="text" [(ngModel)]="vdReceita" name="vdReceita">
+  </label>
+
+  <button (click)="confirmarVenda()">Confirmar Venda</button>
+  <div class="msg" *ngIf="msgVenda" [class.ok]="msgVendaOk" [class.erro]="!msgVendaOk">{{ msgVenda }}</div>
+</section>
+
+<section>
+  <h2>5. SNGPC - Retenções e Transmissão (RF06)</h2>
+  <button (click)="carregarRetencoes()">Listar retenções pendentes</button>
+  <button (click)="gerarTransmissao()">Gerar arquivo de transmissão (.txt)</button>
+  <table>
+    <thead>
+      <tr>
+        <th>Produto</th><th>Lote</th><th>Validade</th><th>Qtd</th><th>Movimento</th>
+        <th>Data</th><th>Farmacêutico</th><th>Receita/Paciente</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="retencoes.length === 0">
+        <td colspan="8">Nenhuma retenção pendente.</td>
+      </tr>
+      <tr *ngFor="let r of retencoes">
+        <td>{{ r.produto }}</td>
+        <td>{{ r.numeroLote }}</td>
+        <td>{{ r.dataValidade | date:'dd/MM/yyyy' }}</td>
+        <td>{{ r.quantidade }}</td>
+        <td>{{ r.tipoMovimento }}</td>
+        <td>{{ r.dataMovimento | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ r.farmaceutico }}</td>
+        <td>{{ r.receitaPaciente }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="msg" *ngIf="msgSngpc" [class.ok]="msgSngpcOk" [class.erro]="!msgSngpcOk">{{ msgSngpc }}</div>
+</section>

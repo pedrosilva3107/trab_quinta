@@ -11,6 +11,16 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// CORS: permite que o frontend Angular (ng serve, http://localhost:4200)
+// consuma a API durante o desenvolvimento.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendAngular", policy =>
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
 var app = builder.Build();
 
 // Aplica migrations automaticamente e cria o banco SQLite ao iniciar
@@ -25,6 +35,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+
+app.UseCors("FrontendAngular");
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

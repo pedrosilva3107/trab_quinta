@@ -2,3 +2,8 @@ bin/
 obj/
 *.db
 *.db-*
+
+# Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/

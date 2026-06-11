@@ -1,0 +1,51 @@
+:host {
+  display: block;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f4f6f8;
+  color: #222;
+}
+
+h1 { color: #2c5f8a; }
+
+section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+h2 { margin-top: 0; font-size: 18px; color: #2c5f8a; }
+
+table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+
+th, td { border: 1px solid #ccc; padding: 6px 8px; font-size: 14px; text-align: left; }
+
+th { background: #eaf1f7; }
+
+label { display: block; margin-top: 8px; font-size: 14px; }
+
+input, select { padding: 4px; margin-top: 2px; width: 250px; }
+
+button {
+  margin-top: 10px;
+  padding: 6px 14px;
+  background: #2c5f8a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover { background: #1f4a6e; }
+
+.msg { margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 14px; }
+
+.ok { background: #e3f7e3; color: #1a6b1a; }
+
+.erro { background: #fbe3e3; color: #a13030; }
+
+.item-venda { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
+
+a.swagger-link { float: right; font-size: 14px; }

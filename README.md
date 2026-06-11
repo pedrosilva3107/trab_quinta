@@ -7,12 +7,39 @@ controle de estoque, controle de medicamentos controlados (SNGPC) e ponto de ven
 - ASP.NET Core 10 Web API (Controllers)
 - Entity Framework Core + SQLite (`farmacia.db`, criado automaticamente)
 - Swagger (interface de testes em `/swagger`)
+- Frontend Angular (pasta `frontend/`)
 
 ## Como rodar
+
+### Opção 1 - tudo via API (mais simples para a defesa)
+O Angular já vem **compilado e copiado** para `wwwroot/`, então basta subir o backend:
 ```
 dotnet run
 ```
-Acesse `https://localhost:<porta>/swagger` (a porta aparece no console).
+Acesse:
+- `http://localhost:<porta>/` → frontend Angular
+- `http://localhost:<porta>/swagger` → Swagger (a porta aparece no console)
+
+### Opção 2 - desenvolvimento (Angular com hot-reload)
+Em um terminal, suba a API:
+```
+dotnet run --urls http://localhost:5180
+```
+Em outro terminal, suba o Angular (usa `frontend/proxy.conf.json` para redirecionar `/api` e `/swagger` para a API):
+```
+cd frontend
+npm install
+npm start
+```
+Acesse `http://localhost:4200/`.
+
+> Após alterar o frontend, gere o build de produção e copie para `wwwroot`:
+> ```
+> cd frontend
+> npm run build
+> cd ..
+> rm -rf wwwroot/* && cp -r frontend/dist/frontend/browser/* wwwroot/
+> ```
 
 Login de farmacêutico de demonstração (RF03): usuário `ana`, senha `1234`.
 
@@ -61,6 +88,8 @@ Login de farmacêutico de demonstração (RF03): usuário `ana`, senha `1234`.
 - A "assinatura digital" do farmacêutico (RF03) foi simplificada para usuário/senha (hash SHA-256).
   Em produção seria um certificado digital (ICP-Brasil).
 - Arquitetura original do trabalho previa microsserviços (Catálogo, Estoque, SNGPC, Inbound) +
-  RabbitMQ/Kafka + Angular. Aqui está consolidado em um único projeto monolítico para viabilizar
-  a implementação e a defesa individual, mantendo a separação por Controllers/camadas como
-  preparação para uma futura decomposição em microsserviços.
+  RabbitMQ/Kafka + API Gateway com JWT. Aqui está consolidado em um único projeto de API (.NET)
+  para viabilizar a implementação e a defesa individual, mantendo a separação por
+  Controllers/camadas como preparação para uma futura decomposição em microsserviços.
+  O **frontend Angular foi implementado** (item da arquitetura original atendido); Gateway/JWT
+  e mensageria (RabbitMQ/Kafka) **não foram implementados** nesta versão.
