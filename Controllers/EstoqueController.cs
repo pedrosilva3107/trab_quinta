@@ -20,6 +20,7 @@ public class EstoqueController : ControllerBase
         public int LoteEstoqueId { get; set; }
         public string Produto { get; set; } = string.Empty;
         public string TipoProduto { get; set; } = string.Empty;
+        public string TipoReceita { get; set; } = string.Empty;
         public string NumeroLote { get; set; } = string.Empty;
         public DateTime DataValidade { get; set; }
         public int Quantidade { get; set; }
@@ -36,6 +37,7 @@ public class EstoqueController : ControllerBase
                 LoteEstoqueId = l.Id,
                 Produto = l.Produto!.Nome,
                 TipoProduto = l.Produto.TipoProduto.ToString(),
+                TipoReceita = l.Produto.TipoReceita,
                 NumeroLote = l.NumeroLote,
                 DataValidade = l.DataValidade,
                 Quantidade = l.Quantidade
@@ -60,6 +62,7 @@ public class EstoqueController : ControllerBase
                 LoteEstoqueId = l.Id,
                 Produto = l.Produto!.Nome,
                 TipoProduto = l.Produto.TipoProduto.ToString(),
+                TipoReceita = l.Produto.TipoReceita,
                 NumeroLote = l.NumeroLote,
                 DataValidade = l.DataValidade,
                 Quantidade = l.Quantidade

@@ -54,7 +54,7 @@
   <h2>2. Estoque (RF04)</h2>
   <button onclick="carregarEstoque()">Atualizar estoque</button>
   <table id="tabelaEstoque">
-    <thead><tr><th>Lote ID</th><th>Produto</th><th>Tipo</th><th>Lote</th><th>Validade</th><th>Quantidade</th></tr></thead>
+    <thead><tr><th>Lote ID</th><th>Produto</th><th>Tipo</th><th>Tipo de Receita</th><th>Lote</th><th>Validade</th><th>Quantidade</th></tr></thead>
     <tbody></tbody>
   </table>
 </section>
@@ -141,7 +141,7 @@ async function carregarEstoque() {
   tbody.innerHTML = '';
   lotes.forEach(l => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${l.loteEstoqueId}</td><td>${l.produto}</td><td>${l.tipoProduto}</td><td>${l.numeroLote}</td><td>${new Date(l.dataValidade).toLocaleDateString()}</td><td>${l.quantidade}</td>`;
+    tr.innerHTML = `<td>${l.loteEstoqueId}</td><td>${l.produto}</td><td>${l.tipoProduto}</td><td>${l.tipoReceita}</td><td>${l.numeroLote}</td><td>${new Date(l.dataValidade).toLocaleDateString()}</td><td>${l.quantidade}</td>`;
     tbody.appendChild(tr);
   });
   atualizarSelectsLote(lotes);

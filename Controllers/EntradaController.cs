@@ -97,7 +97,8 @@ public class EntradaController : ControllerBase
                     CodigoBarras = item.CodigoBarras,
                     Nome = item.Nome,
                     PrincipioAtivo = item.PrincipioAtivo,
-                    TipoProduto = item.TipoProduto
+                    TipoProduto = item.TipoProduto,
+                    TipoReceita = item.TipoReceita
                 };
                 _context.Produtos.Add(produto);
                 await _context.SaveChangesAsync();

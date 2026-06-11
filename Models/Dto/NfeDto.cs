@@ -31,6 +31,11 @@ public class NfeItemDto
     [XmlElement("TipoProduto")]
     public TipoProduto TipoProduto { get; set; }
 
+    // Tipo de receita exigida para a venda do produto (ex: "Nenhuma", "Receita Branca",
+    // "Receita Controle Especial"). Itens MIP normalmente vêm como "Nenhuma".
+    [XmlElement("TipoReceita")]
+    public string TipoReceita { get; set; } = "Nenhuma";
+
     [XmlElement("Lote")]
     public string Lote { get; set; } = string.Empty;
 

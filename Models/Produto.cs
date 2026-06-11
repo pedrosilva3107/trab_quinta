@@ -15,8 +15,12 @@ public class Produto
 
     public string? PrincipioAtivo { get; set; }
 
-    // RF02: Controlado, Comum (MIP) ou Conveniência
+    // RF02: Controlado, Comum (MIP - Medicamento Isento de Prescrição) ou Conveniência
     public TipoProduto TipoProduto { get; set; }
+
+    // Tipo de receita exigida para a venda (ex: "Nenhuma", "Receita Branca", "Receita Controle Especial")
+    // Itens MIP (Comum) normalmente não exigem receita ("Nenhuma").
+    public string TipoReceita { get; set; } = "Nenhuma";
 
     public List<LoteEstoque> Lotes { get; set; } = new();
 }
