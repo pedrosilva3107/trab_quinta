@@ -48,12 +48,14 @@ Login de farmacêutico de demonstração (RF03): usuário `ana`, senha `1234`.
 - `Models/Dto/` — `NfeDto` (XML simplificado da NF-e) e `VendaDto` (payload do PDV)
 - `Helpers/CryptoHelper.cs` — criptografia AES (RNF03/LGPD) e hash de senha (RF03)
 - `Data/AppDbContext.cs` — contexto EF Core, com seed do farmacêutico "ana"
+- `Helpers/JwtHelper.cs` — geração do token JWT (RF03)
 - `Controllers/`
+  - `AuthController` — login do farmacêutico, retorna token JWT (RF03)
   - `ProdutosController` — catálogo (RF02)
   - `EntradaController` — importação do XML da NF-e (RF01-RF04)
   - `EstoqueController` — saldo e alertas de vencimento (RF05)
   - `VendasController` — PDV, abate de estoque (RF03, RF07)
-  - `SngpcController` — retenções e arquivo de transmissão (RF06)
+  - `SngpcController` — retenções e arquivo de transmissão (RF06), protegido com `[Authorize]` (JWT)
 
 ## Roteiro de defesa: requisito → onde está implementado
 
@@ -61,26 +63,30 @@ Login de farmacêutico de demonstração (RF03): usuário `ana`, senha `1234`.
 |---|---|
 | RF01 - Importar XML da NF-e | `EntradaController.ImportarXml`, modelo `NfeDto` (deserialização XML). Use `exemplo-nfe.xml` |
 | RF02 - Categorizar Controlado/Comum/Conveniência | `enum TipoProduto`; aplicado em `EntradaController` ao criar/atualizar `Produto` |
-| RF03 - Assinatura/senha do farmacêutico p/ controlados | `EntradaController` e `VendasController` validam `FarmaceuticoNome`/`Senha` via `CryptoHelper.HashSenha` contra `Farmaceutico.SenhaHash` |
+| RF03 - Assinatura/senha do farmacêutico p/ controlados | (a) `EntradaController` e `VendasController` validam `FarmaceuticoNome`/`Senha` via `CryptoHelper.HashSenha` contra `Farmaceutico.SenhaHash`; (b) `AuthController.Login` (`POST /api/auth/login`) emite um **token JWT** que representa essa assinatura, exigido (`[Authorize]`) para acessar o SNGPC |
 | RF04 - Lote e validade | `LoteEstoque` (NumeroLote, DataValidade), gravado em `EntradaController` |
 | RF05 - Alerta 30 dias antes do vencimento | `EstoqueController.GetProximosVencimentos` (`/api/estoque/vencimentos?dias=30`) |
 | RF06 - Arquivo de transmissão SNGPC | `SngpcController.GerarArquivoTransmissao` (`POST /api/sngpc/transmissao`) gera `.txt` com as movimentações de controlados |
 | RF07 - Abate automático do estoque na venda | `VendasController.Confirmar` decrementa `LoteEstoque.Quantidade` |
 | RNF01 - Atualização de estoque < 2s | Operação simples em SQLite local (commit único via `SaveChangesAsync`), sem chamadas externas |
 | RNF02 - Disponibilidade 99,9% | Discutir como decisão arquitetural (não implementado em código): hospedagem redundante, monitoramento, etc. |
-| RNF03 - Criptografia de dados de receita/paciente (LGPD) | `CryptoHelper.Criptografar/Descriptografar` (AES-256), campo `RetencaoSngpc.ReceitaPacienteCriptografado` |
+| RNF03 - Criptografia de dados de receita/paciente (LGPD) | `CryptoHelper.Criptografar/Descriptografar` (AES-256), campo `RetencaoSngpc.ReceitaPacienteCriptografado`, **e** acesso protegido por JWT (`SngpcController` com `[Authorize]`) |
 
 ## Fluxo de teste sugerido (via Swagger)
+0. `POST /api/auth/login` com `{"nome":"ana","senha":"1234"}` — copie o `token` retornado.
+   No Swagger, clique em **Authorize** (cadeado) e informe `Bearer <token>` para liberar
+   as rotas protegidas (`SngpcController`).
 1. `POST /api/entrada/importar-xml` — envie `exemplo-nfe.xml`. Para o item "Rivotril"
    (Controlado), informe `FarmaceuticoNome=ana`, `FarmaceuticoSenha=1234`,
    `NomePaciente` e `NumeroReceita`.
 2. `GET /api/estoque` — confirme que os 3 lotes foram criados.
 3. `GET /api/estoque/vencimentos?dias=400` — veja que o "Rivotril" (validade próxima) aparece.
-4. `GET /api/sngpc/retencoes` — veja a retenção criada, com a receita já descriptografada na resposta.
+4. `GET /api/sngpc/retencoes` — **sem token retorna 401**; com o token (Authorize) retorna a
+   retenção criada, com a receita já descriptografada na resposta.
 5. `POST /api/vendas` — venda alguns itens (use os `LoteEstoqueId` retornados em `/api/estoque`).
    Para o item controlado, informe novamente as credenciais do farmacêutico.
 6. `GET /api/estoque` — confirme que o saldo foi abatido (RF07).
-7. `POST /api/sngpc/transmissao` — baixa o arquivo `.txt` com as movimentações (entrada + saída) e marca como transmitidas.
+7. `POST /api/sngpc/transmissao` — baixa o arquivo `.txt` com as movimentações (entrada + saída) e marca como transmitidas (requer token).
 
 ## Observações sobre simplificações (para a defesa)
 - O XML da NF-e usado é um **layout simplificado**, não o schema oficial completo da SEFAZ —
@@ -91,5 +97,17 @@ Login de farmacêutico de demonstração (RF03): usuário `ana`, senha `1234`.
   RabbitMQ/Kafka + API Gateway com JWT. Aqui está consolidado em um único projeto de API (.NET)
   para viabilizar a implementação e a defesa individual, mantendo a separação por
   Controllers/camadas como preparação para uma futura decomposição em microsserviços.
-  O **frontend Angular foi implementado** (item da arquitetura original atendido); Gateway/JWT
-  e mensageria (RabbitMQ/Kafka) **não foram implementados** nesta versão.
+  - **Frontend Angular**: implementado (`frontend/`).
+  - **JWT**: implementado (`AuthController` + `[Authorize]` no `SngpcController`), mas sem
+    um API Gateway dedicado — o próprio monólito valida o token.
+  - **API Gateway** (Spring Cloud Gateway/Ocelot) e **RabbitMQ/Kafka**: **não implementados**
+    nesta versão. Continuam fazendo parte da discussão de arquitetura/evolução do sistema.
+
+## JWT - como funciona (RF03 / RNF03)
+- `POST /api/auth/login` recebe `{ "nome", "senha" }`, valida contra `Farmaceutico.SenhaHash`
+  (mesmo hash usado no RF03) e retorna um token JWT assinado (HMAC-SHA256), válido por 60 min
+  (configurável em `appsettings.json`, seção `Jwt`).
+- O `SngpcController` (RF06, dados de receituário/paciente — RNF03) está marcado com
+  `[Authorize]`: qualquer requisição sem `Authorization: Bearer <token>` válido recebe `401`.
+- No frontend Angular, a seção "0. Login do Farmacêutico" guarda o token em memória e o envia
+  automaticamente nas chamadas da seção "5. SNGPC".

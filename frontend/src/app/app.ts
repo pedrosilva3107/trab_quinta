@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 interface LoteEstoque {
@@ -71,8 +71,49 @@ export class App {
   msgSngpc = '';
   msgSngpcOk = false;
 
+  // ----- Login / JWT (RF03 / RNF03) -----
+  loginNome = '';
+  loginSenha = '';
+  token: string | null = null;
+  usuarioLogado: string | null = null;
+  msgLogin = '';
+  msgLoginOk = false;
+
   constructor() {
     this.carregarEstoque();
+  }
+
+  // RF03: autentica o farmacêutico e obtém o token JWT.
+  // RNF03: esse token é exigido para acessar os dados sensíveis do SNGPC.
+  async login() {
+    try {
+      const resp: any = await firstValueFrom(
+        this.http.post(`${this.apiBase}/auth/login`, {
+          nome: this.loginNome,
+          senha: this.loginSenha
+        })
+      );
+      this.token = resp.token;
+      this.usuarioLogado = resp.nome;
+      this.msgLoginOk = true;
+      this.msgLogin = `Login realizado com sucesso (${resp.nome}). Token JWT obtido.`;
+    } catch (err: any) {
+      this.token = null;
+      this.usuarioLogado = null;
+      this.msgLoginOk = false;
+      this.msgLogin = this.extrairErro(err);
+    }
+  }
+
+  logout() {
+    this.token = null;
+    this.usuarioLogado = null;
+    this.retencoes = [];
+    this.msgLogin = '';
+  }
+
+  private authHeaders(): HttpHeaders {
+    return new HttpHeaders(this.token ? { Authorization: `Bearer ${this.token}` } : {});
   }
 
   onArquivoSelecionado(event: Event) {
@@ -160,16 +201,36 @@ export class App {
     }
   }
 
-  // ----- SNGPC (RF06) -----
+  // ----- SNGPC (RF06 / RNF03 - requer JWT) -----
   async carregarRetencoes() {
-    this.retencoes = await firstValueFrom(
-      this.http.get<Retencao[]>(`${this.apiBase}/sngpc/retencoes?somentePendentes=true`)
-    );
+    if (!this.token) {
+      this.msgSngpcOk = false;
+      this.msgSngpc = 'Faça login como farmacêutico para acessar os dados do SNGPC.';
+      return;
+    }
+    try {
+      this.retencoes = await firstValueFrom(
+        this.http.get<Retencao[]>(`${this.apiBase}/sngpc/retencoes?somentePendentes=true`, {
+          headers: this.authHeaders()
+        })
+      );
+    } catch (err: any) {
+      this.msgSngpcOk = false;
+      this.msgSngpc = this.extrairErro(err);
+    }
   }
 
   async gerarTransmissao() {
+    if (!this.token) {
+      this.msgSngpcOk = false;
+      this.msgSngpc = 'Faça login como farmacêutico para gerar o arquivo do SNGPC.';
+      return;
+    }
     try {
-      const resp = await fetch(`${this.apiBase}/sngpc/transmissao`, { method: 'POST' });
+      const resp = await fetch(`${this.apiBase}/sngpc/transmissao`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${this.token}` }
+      });
 
       if (resp.status === 204) {
         this.msgSngpcOk = false;

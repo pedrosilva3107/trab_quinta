@@ -1,14 +1,18 @@
 using System.Text;
 using FarmaciaSistema.Data;
 using FarmaciaSistema.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace FarmaciaSistema.Controllers;
 
 // RF06: gera o arquivo de transmissão de movimentação de psicotrópicos para o SNGPC/Anvisa.
+// RNF03: como aqui trafegam dados de receituário/paciente (mesmo que descriptografados
+// na resposta), o acesso exige autenticação JWT do farmacêutico (RF03).
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class SngpcController : ControllerBase
 {
     private readonly AppDbContext _context;

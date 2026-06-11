@@ -3,6 +3,24 @@
 </h1>
 
 <section>
+  <h2>0. Login do Farmacêutico - JWT (RF03)</h2>
+  <ng-container *ngIf="!usuarioLogado; else logado">
+    <label>Usuário
+      <input type="text" [(ngModel)]="loginNome" name="loginNome" placeholder="ana">
+    </label>
+    <label>Senha
+      <input type="password" [(ngModel)]="loginSenha" name="loginSenha" placeholder="1234">
+    </label>
+    <button (click)="login()">Entrar</button>
+  </ng-container>
+  <ng-template #logado>
+    <p>Logado como <strong>{{ usuarioLogado }}</strong> (token JWT ativo)</p>
+    <button (click)="logout()">Sair</button>
+  </ng-template>
+  <div class="msg" *ngIf="msgLogin" [class.ok]="msgLoginOk" [class.erro]="!msgLoginOk">{{ msgLogin }}</div>
+</section>
+
+<section>
   <h2>1. Entrada de Mercadoria - Importar XML da NF-e (RF01-RF04)</h2>
   <form (ngSubmit)="importarXml()">
     <label>Arquivo XML
@@ -105,7 +123,7 @@
 </section>
 
 <section>
-  <h2>5. SNGPC - Retenções e Transmissão (RF06)</h2>
+  <h2>5. SNGPC - Retenções e Transmissão (RF06 / RNF03 - requer login)</h2>
   <button (click)="carregarRetencoes()">Listar retenções pendentes</button>
   <button (click)="gerarTransmissao()">Gerar arquivo de transmissão (.txt)</button>
   <table>
